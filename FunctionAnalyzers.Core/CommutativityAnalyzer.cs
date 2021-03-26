@@ -1,11 +1,11 @@
-﻿using System;
+﻿using FunctionAnalyzers.Core.Data;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
+using System;
 using System.Collections.Immutable;
 using System.Linq;
-using FunctionAnalyzers.Core.Data;
 
 namespace FunctionAnalyzers.Core
 {
@@ -50,14 +50,13 @@ namespace FunctionAnalyzers.Core
                 return;
             }
 
-            var lambda = ExpressionHelpers.Build(context.Compilation, symbol);
-            
             try
             {
+                var lambda = ExpressionHelpers.Build(context.Compilation, symbol);
                 var source = ExpressionHelpers.BuildExpressionTree(lambda?.Body);
                 var tree = ExpressionHelpers.SimplifyTree(source);
 
-                foreach (var rule in rules.Results)
+                foreach (var (rule, location) in rules.Results)
                 {
                     var result = CheckCommutativity(tree, rule.ElementAt(0), rule.ElementAt(1));
 
@@ -65,16 +64,22 @@ namespace FunctionAnalyzers.Core
                     {
                         context.ReportDiagnostic(Diagnostic.Create(
                             Descriptors.ExpressionIsNotCommutative,
-                            node.Body?.GetLocation()));
+                            location));
                     }
                 }
             }
-            catch (NotSupportedException)
+            catch (NotSupportedException ex)
             {
+                Console.WriteLine(ex.ToString());
+
                 context.ReportDiagnostic(Diagnostic.Create(
                     Descriptors.UnsupportedError,
                     node.GetLocation(),
                     "Method has unsupported constructions"));
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
             }
         }
 

@@ -10,7 +10,7 @@ namespace FunctionAnalyzers.Core
 {
     public static class Helpers
     {
-        public static OutcomeList<ImmutableArray<string>> GetRules(MethodDeclarationSyntax node, IMethodSymbol symbol, string typeName)
+        public static OutcomeList<(ImmutableArray<string>, Location)> GetRules(MethodDeclarationSyntax node, IMethodSymbol symbol, string typeName)
         {
             return node.AttributeLists
                 .SelectMany(x => x.Attributes)
@@ -19,13 +19,13 @@ namespace FunctionAnalyzers.Core
                 .ToOutcomeList();
         }
 
-        private static Outcome<ImmutableArray<string>> ExtractRule(IMethodSymbol method, AttributeSyntax attribute)
+        private static Outcome<(ImmutableArray<string>, Location)> ExtractRule(IMethodSymbol method, AttributeSyntax attribute)
         {
             var attributeArgs = attribute.ArgumentList?.Arguments;
 
             if (attributeArgs == null || attributeArgs.Value.Count < 2)
             {
-                return new Outcome<ImmutableArray<string>>(Diagnostic.Create(
+                return new Outcome<(ImmutableArray<string>, Location)>(Diagnostic.Create(
                     Descriptors.LessThenTwoArguments,
                     attribute.GetLocation()));
             }
@@ -51,10 +51,10 @@ namespace FunctionAnalyzers.Core
 
             if (errors.Any())
             {
-                return new Outcome<ImmutableArray<string>>(errors);
+                return new Outcome<(ImmutableArray<string>, Location)>(errors);
             }
 
-            return new Outcome<ImmutableArray<string>>(result.ToImmutableArray());
+            return new Outcome<(ImmutableArray<string>, Location)>((result.ToImmutableArray(), attribute.GetLocation()));
         }
     }
 }

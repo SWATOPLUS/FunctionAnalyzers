@@ -20,5 +20,9 @@
     <Asset Type="Microsoft.VisualStudio.Analyzer" d:Source="Project" d:ProjectName="FunctionAnalyzers.Core" Path="|FunctionAnalyzers.Core|"/>
     <Asset Type="Microsoft.VisualStudio.Analyzer" d:Source="File" Path="Gu.Roslyn.Extensions.dll" />
     <Asset Type="Microsoft.VisualStudio.Assembly" d:Source="File" Path="Gu.Roslyn.Extensions.dll" />
+    <Asset Type="Microsoft.VisualStudio.Analyzer" d:Source="File" Path="DelegateDecompiler.dll" />
+    <Asset Type="Microsoft.VisualStudio.Assembly" d:Source="File" Path="DelegateDecompiler.dll" />
+    <Asset Type="Microsoft.VisualStudio.Analyzer" d:Source="File" Path="Mono.Reflection.dll" />
+    <Asset Type="Microsoft.VisualStudio.Assembly" d:Source="File" Path="Mono.Reflection.dll" />
   </Assets>
 </PackageManifest>

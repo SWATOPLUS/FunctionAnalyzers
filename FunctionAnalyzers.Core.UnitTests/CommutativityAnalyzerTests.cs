@@ -56,9 +56,9 @@ namespace FunctionAnalyzers.Core.UnitTests
             var code = @"
                 public class TestClass
                 {
-                    [Commutative(""b"", ""a"")]
+                    [↓Commutative(""b"", ""a"")]
                     public int TestMethod(int a, int b)
-                    ↓{
+                    {
                         var x = a + b;
                         x *= a / b;
 

@@ -8,6 +8,8 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
+using Gu.Roslyn.AnalyzerExtensions;
+using Microsoft.CodeAnalysis.CSharp;
 
 namespace FunctionAnalyzers.Core
 {
@@ -97,12 +99,25 @@ namespace FunctionAnalyzers.Core
 
         public static LambdaExpression? Build(Compilation sourceCompilation, IMethodSymbol method)
         {
+            var references = new List<MetadataReference>();
+            var currentDomainAssemblies = AppDomain.CurrentDomain.GetAssemblies();
+
+            foreach (var assembly in currentDomainAssemblies)
+            {
+                if (assembly.IsDynamic || string.IsNullOrEmpty(assembly.Location) || !File.Exists(assembly.Location))
+                    continue;
+                
+                references.Add(MetadataReference.CreateFromFile(assembly.Location));
+            }
+
             // https://stackoverflow.com/questions/35741219/how-to-get-il-of-one-method-body-with-roslyn
             // https://stackoverflow.com/questions/3619386/convert-methodbody-to-expression-tree
 
             using var assemblyStream = new MemoryStream();
             var result = sourceCompilation
-                .AddReferences(MetadataReference.CreateFromFile(typeof(object).Assembly.Location))
+                .RemoveAllReferences()
+                .AddReferences(references)
+                .WithOptions(new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
                 .Emit(assemblyStream);
 
             if (!result.Success)
@@ -110,8 +125,9 @@ namespace FunctionAnalyzers.Core
                 return null;
             }
 
-            var assembly = Assembly.Load(assemblyStream.ToArray());
-            var methodBase = assembly.GetType(method.ContainingType.Name).GetMethod(method.Name);
+            var asm = Assembly.Load(assemblyStream.ToArray());
+            
+            var methodBase = asm.GetType(method.ContainingType.FullName()).GetMethod(method.Name);
             var lambda = MethodBodyDecompiler.Decompile(methodBase);
 
             return lambda;
